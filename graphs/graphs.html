@@ -1,0 +1,719 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>Inertia Real-time Visualisation</title>
+
+    <script src="./mapping.js"></script>
+    <script src="js/eve.js"></script>
+    <script src="js/react.js"></script>
+    <script src="js/react-dom.js"></script>
+    <script src="js/browser.min.js"></script>
+
+    <script src="js/vis.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="js/vis.min.css">
+    <!--
+    <script src="file:///home/ludo/projects/vis/dist/vis.js"></script>
+    <link rel="stylesheet" type="text/css" href="file:///home/ludo/projects/vis/dist/vis.min.css">
+    -->
+
+
+    <script type="text/javascript">
+
+        var CLOUDDATAURL = 'ws://openid.almende.org:8082/agents/logger';
+        var CLOUDCONTROLURL = 'http://openid.almende.org:8082/agents/scenario';
+        var LOCALDATAURL = 'ws://localhost:8082/agents/logger';
+        var LOCALCONTROLURL = 'http://localhost:8082/agents/scenario';
+
+        var MODEL = {
+            // Server where to get the visualisation data
+            server: "local",
+            serverChange:true,
+            data_url: LOCALDATAURL,
+            control_url: LOCALCONTROLURL,
+            // this global is used in the addData to specify the bus
+            active_bus: "bus_6",
+            // this global is used to set the target URL for some quicklinks.
+            active_lch_url: null,
+            // this global is used to toggle the usage of the mapping. For debug, it is set to false
+            use_mapping: true,
+            // the delay between redraws (in ms)
+            redraw_delay: 250
+        }
+
+    </script>
+
+    <style type="text/css">
+        @font-face {
+            font-family: 'oswaldbold';
+            src: url('fonts/oswald-bold_0-webfont.eot');
+            src: url('fonts/oswald-bold_0-webfont.eot?#iefix') format("embedded-opentype"), url('fonts/oswald-bold_0-webfont.woff') format("woff"), url('fonts/oswald-bold_0-webfont.ttf') format("truetype");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face{
+            font-family: 'oswaldlight';
+            src: url('fonts/oswald-light_0-webfont.eot');
+            src: url('fonts/oswald-light_0-webfont.eot?#iefix') format("embedded-opentype"), url('fonts/oswald-light_0-webfont.woff') format("woff"), url('fonts/oswald-light_0-webfont.ttf') format("truetype");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face{
+            font-family: 'oswaldregular';
+            src: url('fonts/oswald-regular-webfont.eot');
+            src: url('fonts/oswald-regular-webfont.eot?#iefix') format("embedded-opentype"), url('fonts/oswald-regular-webfont.woff') format("woff"), url('fonts/oswald-regular-webfont.ttf') format("truetype");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body, html {
+            font-size: 18px;
+            font-family: "Open Sans", sans-serif;
+            background-color:#303e48;
+            color: white;
+            margin: 0; padding: 0;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        div.title {
+            display: block;
+            width:70%;
+            float: left;
+            margin: 0px;
+            padding-top: 45px;
+            border: 0px;
+        }
+        #container {
+            background: #303e48;
+            color: #fff;
+            margin: 0 auto 35px auto;
+            padding: 0px;
+            clear: left;
+        }
+        #linksContainer {
+            position: relative;
+            height:450px;
+            background: #fff;
+            color: #303e48;
+        }
+        #linksContainerBubble {
+            position: absolute;
+            display:block;
+            top: -60px;
+            left: 50%;
+            height: 120px;
+            width: 120px;
+            z-index:1;
+            background-image: url("graphics/round-bg.png");
+            background-repeat: no-repeat;
+        }
+        #header h1 {
+            font-style: normal;
+            font-variant: normal;
+            font-weight: bold;
+            font-stretch: normal;
+            font-size: 50px;
+            line-height: 1;
+            font-family: oswaldbold, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .imgcell img {
+            display: block;
+            float: left;
+            margin: 0px;
+            padding: 0px;
+            border: 0px;
+        }
+        img.right {
+            float:right;
+            padding:10px;
+        }
+        #logo {
+            margin: 0 0 0 10px;
+            display: block;
+        }
+        #header {
+            color: #303e48;
+            height: 100px;
+            background-color: #fff;
+        }
+
+        #visualization {
+            padding:0px 10px 25px 10px;
+            z-index:3;
+        }
+
+        .vis-timeline .vis-fill {
+            fill-opacity:0.2 !important;
+        }
+
+        .vis-timeline {
+            background-color:rgba(255,255,255,0.9);
+            border:1px solid #cccccc;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+            z-index:3;
+        }
+
+        .vis-bar {
+            fill-opacity:0.5;
+            stroke-width:1px;
+        }
+
+        .vis-point {
+            stroke-width:2px;
+            fill-opacity:1.0;
+        }
+
+
+        .vis-legend-background {
+            stroke-width:1px;
+            fill-opacity:0.9;
+            fill: #ffffff;
+            stroke: #c2c2c2;
+        }
+
+
+        .vis-outline {
+            stroke-width:1px;
+            fill-opacity:1;
+            fill: #ffffff;
+            stroke: #e5e5e5;
+        }
+
+        .vis-icon-fill {
+            fill-opacity:1;
+            stroke: none;
+        }
+
+        div.description-container {
+            float:left;
+            height:22px;
+            padding-left:5px;
+            line-height: 22px;
+            font-size:16px;
+        }
+
+        div.icon-container {
+            float:left;
+        }
+
+        div.legend-element-container {
+            /*display:inline-block;*/
+            height:22px;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+
+        svg.legend-icon {
+            width:25px;
+            height:15px;
+        }
+
+        #legend {
+            position:absolute;
+            color: #303e48;
+            top:10px;
+            left:150px;
+            width:175px;
+            z-index:500;
+            background-color:rgba(255,255,255,0.9);
+            padding:6px;
+            border:1px solid #cccccc;
+            box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+        }
+        #viscon {
+            position:relative;
+        }
+
+
+        div.controlBox {
+            z-index:500;
+            padding:6px;
+            background: #5f06ee;
+            color: #fff;
+        }
+
+        div.titleBox {
+            padding: 1px;
+        }
+
+        .panel {
+            background-color:rgba(255,255,255,0.9);
+            padding:6px;
+            border:1px solid #cccccc;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+            width:23%;
+            float:left;
+            margin-top:20px;
+            margin-left:5px;
+        }
+    </style>
+
+
+    <script type="text/javascript">
+
+        /**
+         * update the external faked legend.
+         * @param groupsArray
+         */
+        function updateLegend(groups) {
+            // Invert legenda
+            var groupsArray = groups.get({
+                order: function(a,b){
+                    return a.order> b.order? -1: 1;
+                }
+            });
+
+            // clear the div
+            var legendDiv = document.getElementById("legend");
+            legendDiv.innerHTML = "";
+
+            // get for all groups:
+            for (var i = 0; i < groupsArray.length; i++) {
+                // create divs
+                var containerDiv = document.createElement("div");
+                var iconDiv = document.createElement("div");
+                var descriptionDiv = document.createElement("div");
+
+                // give divs classes and Ids where necessary
+                containerDiv.className = 'legend-element-container';
+                containerDiv.id = groupsArray[i].id + "_legendContainer"
+                iconDiv.className = "icon-container";
+                descriptionDiv.className = "description-container";
+
+                // get the legend for this group.
+                var legend = graph2d.getLegend(groupsArray[i].id,25,15);
+                if (legend.icon == undefined){
+                    continue;
+                }
+
+                // append class to icon. All styling classes from the vis.css have been copied over into the head here to be able to style the
+                // icons with the same classes if they are using the default ones.
+                legend.icon.setAttributeNS(null, "class", "legend-icon");
+
+                // append the legend to the corresponding divs
+                iconDiv.appendChild(legend.icon);
+                descriptionDiv.innerHTML = legend.label;
+
+                // determine the order for left and right orientation
+                if (legend.orientation == 'left') {
+                    descriptionDiv.style.textAlign = "left";
+                    containerDiv.appendChild(iconDiv);
+                    containerDiv.appendChild(descriptionDiv);
+                }
+                else {
+                    descriptionDiv.style.textAlign = "right";
+                    containerDiv.appendChild(descriptionDiv);
+                    containerDiv.appendChild(iconDiv);
+                }
+
+                // append to the legend container div
+                legendDiv.appendChild(containerDiv);
+            }
+
+        }
+
+    </script>
+</head>
+<body>
+<div id="container">
+    <div id="header">
+        <div id="logo"  class="imgcell">
+            <img src="graphics/pi5.png" height="95" alt="π⁵ - Pi Five">
+            <div class="title"><h1>π⁵ - Real-time Visualisation</h1></div>
+            <img src="graphics/footer-logo.png" height="95" alt="Do-bots">
+            <img src="graphics/almende-logo.png" height="90" alt="Almende B.V." class="right">
+        </div>
+    </div>
+    <div id="content"></div>
+    <div id="viscon">
+        <div id="legend"></div>
+        <div id="visualization"></div>
+    </div>
+    <div id="linksContainer">
+        <div id="linksContainerBubble"></div>
+        <br><h2>Direct links to agents:</h2>
+        <div id="links"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    //EVE-JS SECTION
+
+    eve.system.init({
+        transports: [
+            {
+                type: 'ws',
+                url: 'ws://localhost:3000/agents/:id'
+            },
+            {
+                type: 'http',
+                port: 3000,
+                url: 'http://localhost:3000/agents/:id'
+            }
+        ]
+    });
+
+    function GraphAgent(id) {
+        // execute super constructor
+        eve.Agent.call(this, id);
+
+        this.rpc = this.loadModule('rpc', this.rpcFunctions, {timeout:2000}); // option 1
+
+    }
+
+    GraphAgent.prototype = Object.create(eve.Agent.prototype);
+    GraphAgent.prototype.constructor = GraphAgent;
+
+    GraphAgent.prototype.rpcFunctions = {};
+    GraphAgent.prototype.rpcFunctions.addData = function(params) {
+        addData(params.data);
+    };
+    GraphAgent.prototype.reconnect = function(){
+        currentData = {};
+        this.disconnect(eve.system.transports.getAll());
+        this.connect(eve.system.transports.getAll());
+        console.log("Reconnecting to: "+MODEL.data_url);
+        this.send(MODEL.data_url,{"jsonrpc":"2.0","id":"1","method":"forwardAll"});
+    }
+    GraphAgent.prototype.control = function(type){
+        if (type == "sendReport"){
+            this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"sendReport","params":{"bus":MODEL.active_bus}});
+        } else if (type == "repeatUserEvents"){
+            this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"repeatUserEvents","params":{"bus":MODEL.active_bus}});
+        } else if (type == "contract"){
+            this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"setModus","params":{"modus":"Contract","bus":MODEL.active_bus}});
+        } else if (type == "nominal"){
+            this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"setModus","params":{"modus":"Nominal","bus":MODEL.active_bus}});
+        } else if (type == "abstain" && typeof MODEL.active_lch_url != "undefined"){
+            this.send(MODEL.active_lch_url, {"jsonrpc":"2.0","id":"1","method":"setAllModus","params":{"modus":"Abstain"}});
+        }
+    }
+    var agent = new GraphAgent('graphs');
+
+    //VIS.JS SECTION
+
+    var GraphData = new vis.DataSet({"fieldId":"_id"});
+    var GraphFilteredView = new vis.DataView(GraphData, {
+        filter: function (item) {
+            if (MODEL.use_mapping === true) {
+                return (item.id === MODEL.active_bus || mapping[item.id] === MODEL.active_bus);
+            } else {
+                return (item.id === MODEL.active_bus || item.id.indexOf("bus") === -1);
+            }
+        },
+        fields: {'id':'group', 'now':'x', 'demand':'y'},
+        convert: {'now':'Date'},
+        order: 'now'
+    });
+
+    var allGroups = new vis.DataSet();
+    var i = 0;
+    for (var prop in mapping) {
+        if (mapping.hasOwnProperty(prop)) {
+            i++;
+            allGroups.add(
+                    {'id':prop,
+                        order: i,
+                        'bus':mapping[prop],
+                        'content':prop,
+                        'className': "vis-graph-group" + (i % 10),
+                        options: {
+                            shaded: {
+                                orientation: 'zero' // top, bottom, zero
+                            }
+                        }
+                    });
+        }
+    }
+    ["bus_3","bus_5","bus_6","bus_11"].forEach(function(bus){
+        allGroups.add(
+                {'id':bus,
+                    order: i,
+                    'bus':bus,
+                    'content':bus,
+                    'className': "vis-graph-group0",
+                    options: {
+                        shaded: false,
+                        excludeFromStacking: true,
+                        zIndex: 2
+                    }
+                });
+    });
+    var GroupFilteredView = new vis.DataView(allGroups, {
+        filter: function (item) {
+            return (item.bus === MODEL.active_bus);
+        },
+        order: 'id'
+    });
+
+    var formatAxis = function(val){
+        return (val/3600000).toPrecision(4);
+    };
+    var start = new Date();
+    start.setHours(0,0,0,0);
+    var end = new Date();
+    end.setHours(23,59,59,999);
+    var options = {
+        interpolation:false,
+        drawPoints:false,
+        start: start,
+        end: end,
+        stack: true,
+        dataAxis: {left: {
+            format:formatAxis,
+            range: {min:0},
+            title: {text:"kwh"}
+        }}
+    };
+    function addData(rawData) {
+        GraphData.add(rawData);
+        updateLegend(GroupFilteredView);
+    }
+    var container = document.getElementById('visualization');
+    var graph2d = new vis.Graph2d(container, GraphFilteredView, GroupFilteredView, options);
+
+    function updateGraph() {
+        // update the graph
+        GraphFilteredView.refresh();
+        GroupFilteredView.refresh();
+
+        // update the legend
+        updateLegend(GroupFilteredView);
+    }
+
+
+</script>
+
+<script type="text/babel">
+    //CONTROLS SECTION
+    var lchoption = function(host,port,name){
+        var url = "http://"+host+":"+port+"/agents/"+name+"_holistic";
+        return (<option key={name} value={url}>{name}</option>);
+    }
+    var lchoptions = function(host,port,start,end){
+        var rows = [];
+        for (var i=start; i < end; i++) {
+            rows.push(lchoption(host,port,"LCH_"+i));
+        }
+        return rows;
+    }
+    var lchoptionSelect = function(server,bus){
+        switch(bus){
+            case "bus_3":
+                return lchoptions(server=="local"?"localhost":"openid.almende.org",8087,28,38);
+                break;
+            case "bus_5":
+                return lchoptions(server=="local"?"localhost":"openid.almende.org",8085,10,20);
+                break;
+            case "bus_6":
+                if (server == "local"){
+                    return lchoptions("localhost",8084,19,28);
+                } else {
+                    return lchoptions("openid.almende.org",8084,20,21);
+                }
+                break;
+            case "bus_11":
+                return lchoptions(server=="local"?"localhost":"openid.almende.org",8086,1,10);
+                break;
+        }
+    }
+
+    var ControlBox = React.createClass({
+        getInitialState: function() {
+            return MODEL;
+        },
+        handleServer: function(e){
+            var val = e.target.value;
+            var action = { server: val, serverChange:true, active_lch_url: null };
+            if (val == "local"){
+                action.data_url= LOCALDATAURL;
+                action.control_url= LOCALCONTROLURL;
+            } else {
+                action.data_url= CLOUDDATAURL;
+                action.control_url= CLOUDCONTROLURL;
+            }
+            this.setState(action);
+            if (typeof links != "undefined"){
+                links.setState(action);
+            }
+        },
+        handleBus: function(e){
+            this.setState({ active_bus: e.target.value, active_lch_url: null });
+        },
+        handleLCH: function(e){
+            if (e.target.value == "---"){
+                this.setState({ active_lch_url: null });
+            } else {
+                this.setState({ active_lch_url: e.target.value });
+            }
+        },
+        handleReport: function(e){
+            agent.control("sendReport");
+        },
+        handleContract: function(e){
+            agent.control("contract");
+        },
+        handleNominal: function(e){
+            agent.control("nominal");
+        },
+        handleAbstain: function(e){
+            agent.control("abstain");
+        },
+        handleUserEvents: function(e){
+            agent.control("repeatUserEvents");
+        },
+        render: function() {
+            return (
+                    <div>
+                    <div className="controlBox">
+                    <form>
+                    Server:&nbsp;<select
+            name="server"
+            value={this.state.server}
+            onChange={this.handleServer}>
+            <option value="local">Localhost</option>
+                    <option value="cloud">Cloudserver</option>
+                    </select>
+                    &nbsp;Bus:&nbsp;<select
+            name="bus"
+            value={this.state.active_bus}
+            onChange={this.handleBus}>
+            <option value="bus_3">Bus 3</option>
+            <option value="bus_5">Bus 5</option>
+            <option value="bus_6">Bus 6</option>
+            <option value="bus_11">Bus 11</option>
+            </select>
+            &nbsp;Buttons:&nbsp;<input type="button" onClick={this.handleReport} value="sendReports"/>
+                    &nbsp;<input type="button" onClick={this.handleUserEvents} value="User Events"/>
+                    &nbsp;<input type="button" onClick={this.handleContract} value="Contract mode"/>
+                    &nbsp;<input type="button" onClick={this.handleNominal} value="Free Running"/>
+                    &nbsp;LCH:&nbsp;<select
+            name="lch"
+            value={this.state.active_lch_url}
+            onChange={this.handleLCH}>
+            <option>---</option>
+            {lchoptionSelect(this.state.server,this.state.active_bus)}
+            </select>
+            &nbsp;<input type="button" onClick={this.handleAbstain} value="Abstain"/>
+                    </form>
+                    <Graph model={this.state} />
+            </div>
+            <div className="titleBox">
+                    <h2>Showing {this.state.active_bus} energy demand over a quarter (KWh)</h2>
+            </div>
+
+            </div>
+            );
+        }
+    });
+
+    var Graph = React.createClass({
+        render: function(){
+
+            MODEL = this.props.model;
+            if (MODEL.serverChange){
+                agent.reconnect();
+            };
+            MODEL.serverChange=false;
+
+            updateGraph();
+            return ( <div/>);
+        }
+    });
+
+
+
+    ReactDOM.render(
+    <ControlBox data={MODEL} />,
+            document.getElementById('content')
+    );
+
+    // LINKS section
+    var lchlink = function(host,port,name){
+        var url = "http://"+host+":"+port+"/agents/"+name+"_holistic";
+        return (<a key={name} href={url} target="_blank">{name}<br/></a>);
+    }
+    var lchlinks = function(host,port,start,end){
+        var rows = [];
+        for (var i=start; i < end; i++) {
+            rows.push(lchlink(host,port,"LCH_"+i));
+        }
+        return rows;
+    }
+
+    var Links = React.createClass({
+        getInitialState: function(){
+            return MODEL;
+        },
+        render: function(){
+            if (this.state.server == "local"){
+                return (
+                        <div className="links">
+                        <div className="left_panel panel">
+                        <a href="http://localhost:8082/agents/bus_3" target="_blank">bus_3</a><br/>
+                        {lchlinks("localhost","8087",28,38)}
+                        </div>
+                        <div className="left_middle_panel panel">
+                        <a href="http://localhost:8082/agents/bus_5" target="_blank">bus_5</a><br/>
+                        {lchlinks("localhost","8085",10,20)}
+                        </div>
+                        <div className="right_middle_panel panel">
+                        <a href="http://localhost:8082/agents/bus_6" target="_blank">bus_6</a><br/>
+                        {lchlinks("localhost","8084",19,28)}
+                        </div>
+                        <div className="right_panel panel">
+                        <a href="http://localhost:8082/agents/bus_11" target="_blank">bus_11</a><br/>
+                        {lchlinks("localhost","8086",1,10)}
+                        </div>
+                        </div>
+            );
+            } else {
+                return (
+                        <div className="links">
+                        <div className="left_panel panel">
+                        <a href="http://localhost:8082/agents/bus_3" target="_blank">bus_3</a><br/>
+                        {lchlinks("openid.almende.org","8087",28,38)}
+                        </div>
+                        <div className="left_middle_panel panel">
+                        <a href="http://localhost:8082/agents/bus_5" target="_blank">bus_5</a><br/>
+                        {lchlinks("openid.almende.org","8085",10,20)}
+                        </div>
+                        <div className="right_middle_panel panel">
+                        <a href="http://openid.almende.org:8082/agents/bus_6" target="_blank">bus_6</a><br/>
+                        <a href="http://160.40.51.12:8084/agents/certh/" target="_blank">Certh building</a><br/>
+                {lchlinks("openid.almende.org","8084",20,21)}
+                </div>
+                <div className="right_panel panel">
+                        <a href="http://localhost:8082/agents/bus_11" target="_blank">bus_11</a><br/>
+                        {lchlinks("openid.almende.org","8086",1,10)}
+                        </div>
+                        </div>
+            );
+            }
+        }
+    });
+
+    var links = ReactDOM.render(
+                    <Links />,
+            document.getElementById('links')
+    );
+
+</script>
+
+
+</body>
+</html>

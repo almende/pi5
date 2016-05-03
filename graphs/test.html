@@ -1,0 +1,77 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script src="file:///home/ludo/projects/vis/dist/vis.js"></script>
+<link rel="stylesheet" type="text/css" href="file:///home/ludo/projects/vis/dist/vis.min.css">
+</head>
+<body>
+<div id="visualization"></div>
+<script type="text/javascript">
+  var container = document.getElementById('visualization');
+  var items = [
+    {date: '2014-06-11', y: 10, grp: 1},
+    {date: '2014-06-12', y: 25, grp: 1},
+    {date: '2014-06-13', y: 5, grp: 1},
+    {date: '2014-06-14', y: 2, grp: 1},
+    {date: '2014-06-15', y: 0, grp: 1},
+    {date: '2014-06-16', y: 30, grp: 1},
+    {date: '2014-06-11', y: 5, grp: 2},
+    {date: '2014-06-12', y: 15, grp: 2},
+    {date: '2014-06-13', y: 0, grp: 2},
+    {date: '2014-06-14', y: 11, grp: 2},
+    {date: '2014-06-15', y: 5, grp: 2},
+    {date: '2014-06-16', y: 20, grp: 2},
+    {date: '2014-06-11', y: 15, grp: 3},
+    {date: '2014-06-12', y: 12, grp: 3},
+    {date: '2014-06-13', y: 5, grp: 3},
+    {date: '2014-06-14', y: 6, grp: 3},
+    {date: '2014-06-15', y: 3, grp: 3},
+    {date: '2014-06-16', y: 14, grp: 3}
+  ];
+  var groups = new vis.DataSet([
+    { id:1,  content:"group 1"},
+    { id:2,  content:"group 2",
+      options:{
+        style: "point",
+        drawPoints: function(item, group){
+          var size = Math.max(5,item.y);
+          return {size:size};
+        },
+        excludeFromStacking: false
+      }
+    },
+    { id:3, content:"group 3",
+      options:{
+        shaded: {
+          orientation: 'group',
+          groupId:'1'
+        }
+      }}
+  ]);
+  var groupview = new vis.DataView(groups,{
+	filter : function(item){
+		return (item.id != 4);
+        }
+  });
+
+  var dataset = new vis.DataSet(items);
+  var dataview = new vis.DataView(dataset,{
+	fields: {'date':'x','y':'y','grp':'group'}
+  });
+
+  var options = {
+    start: '2014-06-10',
+    end: '2014-06-18',
+    legend: {left:{position:"bottom-left"}},
+    stack: true,
+    style: "line",
+    interpolation: true,
+    drawPoints: false,
+    barChart: {sideBySide: true}
+  };
+  var graph2d = new vis.Graph2d(container, dataview, groupview, options);
+
+  groups.add({id:4, content:"group 4"});
+</script>
+</body>
+</html>

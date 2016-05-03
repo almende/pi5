@@ -1,0 +1,10 @@
+target
+.settings
+.project
+.classpath
+/pom.xml.versionsBackup
+.idea
+gitstats
+/bin/
+node_modules
+.http
