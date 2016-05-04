@@ -1,0 +1,50 @@
+May 04, 2016 11:25:24 AM org.eclipse.jetty.util.log.Log initialized
+INFO: Logging initialized @339ms
+May 04, 2016 11:25:24 AM org.eclipse.jetty.server.Server doStart
+INFO: jetty-9.2.z-SNAPSHOT
+May 04, 2016 11:25:24 AM org.eclipse.jetty.server.handler.ContextHandler doStart
+INFO: Started o.e.j.s.ServletContextHandler@2118cddf{/,null,AVAILABLE}
+May 04, 2016 11:25:24 AM org.eclipse.jetty.server.AbstractConnector doStart
+INFO: Started ServerConnector@60015ef5{HTTP/1.1}{0.0.0.0:8082}
+May 04, 2016 11:25:24 AM org.eclipse.jetty.server.Server doStart
+INFO: Started @682ms
+May 04, 2016 11:25:24 AM com.almende.eve.transport.http.embed.JettyLauncher add
+INFO: Registering servlet:/agents/
+May 04, 2016 11:25:24 AM com.almende.eve.transport.http.embed.JettyLauncher add
+INFO: Registering websocket server endpoint:/agents/logger
+May 04, 2016 11:25:24 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:logger
+May 04, 2016 11:25:24 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:scenario
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: bus_6: repeatSendReportOn15
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: repeatSendReportOn15 stopped
+May 04, 2016 11:25:25 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:bus_6
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: bus_5: repeatSendReportOn15
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: repeatSendReportOn15 stopped
+May 04, 2016 11:25:25 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:bus_5
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: bus_3: repeatSendReportOn15
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: repeatSendReportOn15 stopped
+May 04, 2016 11:25:25 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:bus_3
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: bus_11: repeatSendReportOn15
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent repeatSendReportOn15
+WARNING: repeatSendReportOn15 stopped
+May 04, 2016 11:25:25 AM com.almende.eve.deploy.Boot loadAgents
+INFO: Created agent:bus_11
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent updateTime
+WARNING: bus_6: updateTime to: 2016-05-04T11:30:00.000+02:00
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent updateTime
+WARNING: bus_11: updateTime to: 2016-05-04T11:30:00.000+02:00
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent updateTime
+WARNING: bus_3: updateTime to: 2016-05-04T11:30:00.000+02:00
+May 04, 2016 11:25:25 AM com.almende.pi5.common.agents.GraphAgent updateTime
+WARNING: bus_5: updateTime to: 2016-05-04T11:30:00.000+02:00

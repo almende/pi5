@@ -38,6 +38,8 @@
 
 	<modules>
 		<module>common</module>
+		<module>ach</module>
+		<module>lch</module>
 	</modules>
 
 

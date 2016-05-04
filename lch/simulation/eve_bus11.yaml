@@ -1,0 +1,45 @@
+
+templates:
+   defaultAgent:
+     transports:
+     -  builder: com.almende.eve.transport.http.HttpTransportBuilder
+#        servletUrl: http://openid.almende.org:8086/agents/
+        servletUrl: http://localhost:8086/agents/
+        servletLauncher: JettyLauncher
+        servletClass: com.almende.eve.transport.http.DebugServlet
+        doShortcut: true
+        doAuthentication: false
+        jetty: 
+           port: 8086
+           cors:
+             class: com.thetransactioncompany.cors.CORSFilter
+             path: /*
+     state:
+       builder: com.almende.eve.state.memory.MemoryStateBuilder
+     scheduler:
+       builder: com.almende.eve.scheduling.SimpleSchedulerBuilder
+     protocols:
+     - builder: com.almende.eve.protocol.jsonrpc.JSONRpcProtocolBuilder
+       rpcTimeout: 20
+
+agents:
+-  id: mgr
+   extends: templates/defaultAgent
+   class: com.almende.pi5.lch.SimManager
+   flexCsv: simulation/flexCsv_bus11
+   timeCsv: simulation/timeCsv_bus11
+   dersCsv: simulation/dersCsv_bus11
+   derConfig:
+      extends: templates/defaultAgent
+      class: com.almende.pi5.lch.DERSimAgent
+      parentUrl: local:holistic   
+      sendInterval: 60000
+      sendOffset: 0
+      noControlLoop: true
+   holConfig:
+      extends: templates/defaultAgent
+      class: com.almende.pi5.lch.HolisticAgent
+      parentUrl: http://localhost:8082/agents/bus_11
+      loggerUrl: http://localhost:8082/agents/logger
+      sendOffset: 780000
+      sendInterval: -1
