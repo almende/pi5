@@ -3,11 +3,11 @@
  * License: The Apache Software License, Version 2.0
  */
 package com.almende.pi5.lch;
+
 /*
  * Copyright: Almende B.V. (2014), Rotterdam, The Netherlands
  * License: The Apache Software License, Version 2.0
  */
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,8 @@ public class DERSimAgent extends GraphAgent {
 	private double				generationOffset	= 0;
 	private double				randomOffset		= 0;
 	private double				currentRandomOffset	= 0;
+
+	private boolean				doUserEvents		= false;
 
 	/**
 	 * Instantiates a new DER agent.
@@ -102,12 +104,30 @@ public class DERSimAgent extends GraphAgent {
 	 */
 	@Access(AccessType.PUBLIC)
 	public void repeatUserEvents() {
-		doUserEvent();
-		schedule(
-				"repeatUserEvents",
-				null,
-				DateTime.now().plusSeconds(
-						new Double(Math.random() * 30).intValue()));
+		if (doUserEvents) {
+			doUserEvent();
+			schedule(
+					"repeatUserEvents",
+					null,
+					DateTime.now().plusSeconds(
+							new Double(Math.random() * 30).intValue()));
+		}
+	}
+
+	/**
+	 * Change user events.
+	 *
+	 * @param events
+	 *            the events
+	 */
+	@Access(AccessType.PUBLIC)
+	public void doUserEvents(@Name("events") boolean events) {
+		LOG.warning(getId() + ": " + (events ? "starting" : "stopping")
+				+ " user events...");
+		doUserEvents = events;
+		if (doUserEvents) {
+			repeatUserEvents();
+		}
 	}
 
 	/**
@@ -226,7 +246,6 @@ public class DERSimAgent extends GraphAgent {
 		this.category = category;
 	}
 
-	
 	/**
 	 * Gets the category.
 	 *
@@ -438,7 +457,7 @@ public class DERSimAgent extends GraphAgent {
 
 		profile.getCategoryProfile(cat).setDemand(demand.compact());
 		if (this.modus.equals(ControlMode.ABSTAIN)) {
-			//No flexibility available if not participating.
+			// No flexibility available if not participating.
 			profile.getCategoryProfile(cat).setExpectedFlexibilityMaxInWatts(
 					demand.compact());
 			profile.getCategoryProfile(cat).setExpectedFlexibilityMinInWatts(

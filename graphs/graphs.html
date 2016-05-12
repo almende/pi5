@@ -390,7 +390,9 @@
         this.send(MODEL.data_url,{"jsonrpc":"2.0","id":"1","method":"forwardAll"});
     }
     GraphAgent.prototype.control = function(type){
-        if (type == "sendReport"){
+        if (type == "resetDemo"){
+            this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"resetDemo","params":{}});
+        } else if (type == "sendReport"){
             this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"sendReport","params":{"bus":MODEL.active_bus}});
         } else if (type == "repeatUserEvents"){
             this.send(MODEL.control_url, {"jsonrpc":"2.0","id":"1","method":"repeatUserEvents","params":{"bus":MODEL.active_bus}});
@@ -561,6 +563,9 @@
                 this.setState({ active_lch_url: e.target.value });
             }
         },
+        handleReset: function(e){
+            agent.control("resetDemo");
+        },
         handleReport: function(e){
             agent.control("sendReport");
         },
@@ -588,7 +593,7 @@
             <option value="local">Localhost</option>
                     <option value="cloud">Cloudserver</option>
                     </select>
-                    &nbsp;Bus:&nbsp;<select
+                    &nbsp;&nbsp;<input type="button" onClick={this.handleReset} value="Reset"/>&nbsp;Bus:&nbsp;<select
             name="bus"
             value={this.state.active_bus}
             onChange={this.handleBus}>

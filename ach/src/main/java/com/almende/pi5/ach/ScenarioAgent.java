@@ -1,9 +1,13 @@
-package com.almende.pi5.ach;
 /*
  * Copyright: Almende B.V. (2015), Rotterdam, The Netherlands
  * License: The Apache Software License, Version 2.0
  */
+package com.almende.pi5.ach;
 
+/*
+ * Copyright: Almende B.V. (2015), Rotterdam, The Netherlands
+ * License: The Apache Software License, Version 2.0
+ */
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,6 +41,8 @@ public class ScenarioAgent extends Agent {
 	private final static Map<String, URI>			BUSURIS		= new HashMap<String, URI>();
 	private final static Map<String, Set<String>>	HOLISTICS	= new HashMap<String, Set<String>>();
 	private final static Map<String, Set<String>>	DERS		= new HashMap<String, Set<String>>();
+	private final static URI						LOGGER		= URIUtil
+																		.create("local:logger");
 
 	static {
 		SIMURIS.put("bus_6", "http://localhost:8084/agents/");
@@ -249,7 +255,9 @@ public class ScenarioAgent extends Agent {
 	 *            the bus
 	 */
 	public void repeatUserEvents(@Optional @Name("bus") final String bus) {
-		applyToAll("repeatUserEvents", null, false, false, true, bus);
+		final Params params = new Params();
+		params.add("events", true);
+		applyToAll("doUserEvents", params, false, false, true, bus);
 	}
 
 	/**
@@ -265,5 +273,32 @@ public class ScenarioAgent extends Agent {
 		final Params params = new Params();
 		params.add("offset", randomOffset);
 		applyToAll("setRandomOffset", params, false, false, true, bus);
+	}
+
+	/**
+	 * Reset demo.
+	 */
+	public void resetDemo() {
+		Params params = new Params();
+		params.add("modus", ControlMode.NOMINAL.toString());
+		applyToAll("setModus", params, true, true, true, null);
+		applyToAll("reset", null, true, true, false, null);
+		
+		params = new Params();
+		params.add("events", false);
+		applyToAll("doUserEvents", params, false, false, true, null);
+
+		params = new Params();
+		params.add("offset", 0);
+		applyToAll("setRandomOffset", params, false, false, true, null);
+		applyToAll("setTrickOffset", params, false, false, true, null);
+		applyToAll("setGenerationOffset", params, false, false, true, null);
+
+		try {
+			call(LOGGER, "clear", null);
+		} catch (IOException e) {
+			LOG.log(Level.WARNING, "Couldn't clear logger", e);
+		}
+
 	}
 }

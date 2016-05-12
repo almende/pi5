@@ -19,6 +19,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
    -  builder: com.almende.eve.transport.ws.WebsocketTransportBuilder
       server: true
       address: ws://localhost:8082/agents
@@ -27,6 +30,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
 -  id: scenario
    extends: templates/defaultAgent
    class: com.almende.pi5.ach.ScenarioAgent
@@ -39,6 +45,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
 -  id: bus_6
    extends: templates/defaultAgent
    class: com.almende.pi5.ach.MVAgent
@@ -51,6 +60,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
    loggerUrl: local:logger
 -  id: bus_5
    extends: templates/defaultAgent
@@ -64,6 +76,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
    loggerUrl: local:logger   
 -  id: bus_3
    extends: templates/defaultAgent
@@ -77,6 +92,9 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
    loggerUrl: local:logger
 -  id: bus_11
    extends: templates/defaultAgent
@@ -90,5 +108,8 @@ agents:
       doAuthentication: false
       jetty: 
          port: 8082
+         cors:
+           class: com.thetransactioncompany.cors.CORSFilter
+           path: /*
    loggerUrl: local:logger
 

@@ -150,6 +150,16 @@ public abstract class AggregatingAgent extends GraphAgent {
 	public CategoryProfile getCurrentProfile() {
 		return generateReport().getCategoryProfile(Categories.ALL.name());
 	}
+	
+	/**
+	 * Reset.
+	 */
+	@Access(AccessType.PUBLIC)
+	public void reset(){
+		reportsLock.writeLock().lock();
+		reports.clear();
+		reportsLock.writeLock().unlock();
+	}
 
 	@Override
 	public PowerProfile generateReport() {
