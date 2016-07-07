@@ -93,7 +93,6 @@ public class DERSimAgent extends GraphAgent {
 		if (config.has("forecastHorizon")) {
 			forecastHorizon = config.get("forecastHorizon").asLong();
 		}
-		LOG.warning("onReady called:" + config);
 		repeatRandomOffset();
 
 		super.onReady();
@@ -122,7 +121,7 @@ public class DERSimAgent extends GraphAgent {
 	 */
 	@Access(AccessType.PUBLIC)
 	public void doUserEvents(@Name("events") boolean events) {
-		LOG.warning(getId() + ": " + (events ? "starting" : "stopping")
+		LOG.info(getId() + ": " + (events ? "starting" : "stopping")
 				+ " user events...");
 		doUserEvents = events;
 		if (doUserEvents) {
@@ -155,7 +154,7 @@ public class DERSimAgent extends GraphAgent {
 					* available;
 
 			trickOffset = target - getGoalConsumption(DateTime.now());
-			LOG.warning("New trickOffset:" + trickOffset + " from:" + oldVal);
+			LOG.info("New trickOffset:" + trickOffset + " from:" + oldVal);
 			sendReport();
 		}
 	}
@@ -451,7 +450,7 @@ public class DERSimAgent extends GraphAgent {
 			min.merge(currentReport.getCategoryProfile(cat)
 					.getExpectedFlexibilityMinInWatts(), currentTimeslot
 					.minus(TIMESLOTLENGTH), now);
-			LOG.warning("Adding historical data:"
+			LOG.fine("Adding historical data:"
 					+ currentTimeslot.minus(TIMESLOTLENGTH) + " -> " + now);
 		}
 

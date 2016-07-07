@@ -129,7 +129,7 @@ public abstract class GraphAgent extends Agent {
 				- (now.getSecondOfMinute() * 1000) - now.getMillisOfSecond());
 		if (!this.currentTimeslot.equals(now)) {
 			this.currentTimeslot = now;
-			LOG.warning(getId() + ": updateTime to: " + now);
+			LOG.fine(getId() + ": updateTime to: " + now);
 		}
 	}
 
@@ -138,9 +138,9 @@ public abstract class GraphAgent extends Agent {
 	 */
 	@Access(AccessType.PUBLIC)
 	public void repeatSendReportOn15() {
-		LOG.warning(getId() + ": repeatSendReportOn15");
+		LOG.fine(getId() + ": repeatSendReportOn15");
 		if (this.sendOffset <= 0) {
-			LOG.warning("repeatSendReportOn15 stopped");
+			LOG.info("repeatSendReportOn15 stopped");
 			return;
 		}
 
@@ -153,7 +153,7 @@ public abstract class GraphAgent extends Agent {
 			next = prev;
 		}
 
-		LOG.warning(getId() + ": repeatSendReportOn15, next run at:" + next);
+		LOG.fine(getId() + ": repeatSendReportOn15, next run at:" + next);
 		schedule(sendReport, null, DateTime.now());
 		schedule(repeatSendReportOn15, null, next);
 	}
@@ -166,7 +166,7 @@ public abstract class GraphAgent extends Agent {
 		if (this.sendInterval <= 0)
 			return;
 
-		LOG.warning(getId() + ": repeatSendReportOnInterval, next run at:"
+		LOG.info(getId() + ": repeatSendReportOnInterval, next run at:"
 				+ DateTime.now().plus(this.sendInterval));
 
 		updateTime();
@@ -308,7 +308,7 @@ public abstract class GraphAgent extends Agent {
 				.zeroFrom(currentTimeslot.plus(TIMESLOTLENGTH)).compact());
 		result.calcAll();
 		try {
-			LOG.warning(getId() + ": Creating proposal for request:"
+			LOG.info(getId() + ": Creating proposal for request:"
 					+ JOM.getInstance().writeValueAsString(request)
 					+ " lead to: "
 					+ JOM.getInstance().writeValueAsString(result));
@@ -329,10 +329,10 @@ public abstract class GraphAgent extends Agent {
 	@Access(AccessType.PUBLIC)
 	public void request(@Name("request") RequestProfile request,
 			@Optional @Name("doReply") Boolean doReply) {
-		LOG.warning(getId() + ": Request received at Graph level!" + request);
+		LOG.info(getId() + ": Request received at Graph level!" + request);
 
 		if (modus.equals(ControlMode.ABSTAIN)) {
-			LOG.warning(getId() + ": ignoring request! Free Running.");
+			LOG.info(getId() + ": ignoring request! Free Running.");
 			sendReport();
 			return;
 		}

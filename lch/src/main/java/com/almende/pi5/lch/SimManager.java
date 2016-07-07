@@ -58,7 +58,7 @@ public class SimManager extends Agent {
 
 	private void createAgent(String agentId, AgentConfig config) {
 		config.setId(agentId);
-		LOG.warning("creating DER sim: " + agentId + " : " + config);
+		LOG.info("creating DER sim: " + agentId + " : " + config);
 		final DERSimAgent agent = (DERSimAgent) new AgentBuilder().withConfig(
 				config).build();
 		DERAgents.put(agentId, agent);
@@ -117,12 +117,12 @@ public class SimManager extends Agent {
 			final String[] fields = line.split(",");
 			final String label = fields[0].replace('\n', ' ').trim();
 
-			LOG.warning("Filling building:" + label);
+			LOG.info("Filling building:" + label);
 
 			final AgentConfig holConfig = AgentConfig
 					.decorate((ObjectNode) getConfig().get("holConfig"));
 			final String holId = label + "_holistic";
-			LOG.warning("Creating Holistic agent in sim: " + holId + " : "
+			LOG.info("Creating Holistic agent in sim: " + holId + " : "
 					+ holConfig);
 			holConfig.setId(holId);
 			final HolisticAgent holAgent = (HolisticAgent) new AgentBuilder()
@@ -200,7 +200,6 @@ public class SimManager extends Agent {
 			}
 			final String[] fields = line.split(",");
 			final String label = fields[0].replace('\n', ' ').trim();
-			LOG.warning("Reading timeline:" + label);
 			final double timeOfDay = Double.valueOf(label) * 3600;
 			final ObjectNode light = JOM.createObjectNode();
 			light.put("secondsOfDay", timeOfDay);
@@ -242,7 +241,6 @@ public class SimManager extends Agent {
 			}
 			final String[] fields = line.split(",");
 			final String label = fields[0].replace('\n', ' ').trim();
-			LOG.warning("Reading flexline:" + label);
 			lightSpread.put(label, fields[1]);
 			hvacSpread.put(label, fields[2]);
 			otherSpread.put(label, fields[3]);

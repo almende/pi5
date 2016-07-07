@@ -8,14 +8,18 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.joda.time.DateTime;
 
 import com.almende.eve.agent.Agent;
 import com.almende.eve.protocol.jsonrpc.annotation.Access;
 import com.almende.eve.protocol.jsonrpc.annotation.AccessType;
 import com.almende.eve.protocol.jsonrpc.annotation.Name;
+import com.almende.eve.protocol.jsonrpc.annotation.Optional;
 import com.almende.eve.protocol.jsonrpc.formats.JSONRequest;
 import com.almende.eve.protocol.jsonrpc.formats.Params;
 import com.almende.pi5.common.LogLine;
@@ -41,6 +45,7 @@ public class LoggerAgent extends Agent {
 
 		this.graphs = config.hasNonNull("clientUrl") ? URI.create(config.get(
 				"clientUrl").asText()) : null;
+
 	}
 
 	/**
@@ -69,7 +74,7 @@ public class LoggerAgent extends Agent {
 		try {
 			caller.call(graphs, request);
 		} catch (IOException e) {
-			LOG.log(Level.WARNING, "Graphs agent not connected...");
+			LOG.log(Level.INFO, "Graphs agent not connected...");
 		}
 	}
 
@@ -83,7 +88,7 @@ public class LoggerAgent extends Agent {
 		try {
 			caller.call(graphs, request);
 		} catch (IOException e) {
-			LOG.log(Level.WARNING, "Graphs agent not connected...");
+			LOG.log(Level.INFO, "Graphs agent not connected...");
 		}
 	}
 
@@ -120,9 +125,58 @@ public class LoggerAgent extends Agent {
 	}
 
 	/**
+	 * Gets the stats.
+	 *
+	 * @return the stats
+	 */
+	public ObjectNode getStats() {
+		final ObjectNode result = JOM.createObjectNode();
+		result.put("count", logs.size());
+
+		if (logs.size() > 0) {
+			final LogLine oldest = logs.get(0);
+			result.put("oldest", oldest.getNow());
+			result.put("oldestString", new DateTime(oldest.getNow()).toString());
+
+			final LogLine newest = logs.get(logs.size() - 1);
+			result.put("newest", newest.getNow());
+			result.put("newestString", new DateTime(newest.getNow()).toString());
+		}
+
+		return result;
+	}
+
+	/**
 	 * Clear.
 	 */
 	public void clear() {
 		logs = Collections.synchronizedList(new ArrayList<LogLine>());
+	}
+
+	/**
+	 * Forget.
+	 *
+	 * @param days
+	 *            the days
+	 */
+	public void forget(@Optional @Name("days") Integer days) {
+		if (days == null) {
+			days = 7;
+		}
+		final long gauge = getScheduler().nowDateTime().minusDays(days)
+				.getMillis();
+		synchronized (logs) {
+			final Iterator<LogLine> iter = logs.iterator();
+			while (iter.hasNext()) {
+				final LogLine ll = iter.next();
+				if (ll.getNow() < gauge) {
+					iter.remove();
+				} else {
+					// Although logs isn't entirely chronologic, the differences
+					// isn't big enough to warrant full transfersal.
+					break;
+				}
+			}
+		}
 	}
 }

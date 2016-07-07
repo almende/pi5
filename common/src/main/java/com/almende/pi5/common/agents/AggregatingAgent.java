@@ -136,8 +136,8 @@ public abstract class AggregatingAgent extends GraphAgent {
 	protected void onReady() {
 		this.steerlimit = getConfig().hasNonNull("steerLimit") ? getConfig()
 				.get("steerLimit").asDouble() : 100;
-		repeatSteer();
 		super.onReady();
+		repeatSteer();
 	}
 
 	/**
@@ -199,7 +199,8 @@ public abstract class AggregatingAgent extends GraphAgent {
 	 */
 	public void repeatSteer() {
 		steer();
-
+		sendLog();
+		
 		DateTime next = this.currentTimeslot.plusMinutes(TIMESTEP - 1)
 				.plusSeconds(25);
 		DateTime prev = next.minusMinutes(TIMESTEP);
@@ -224,7 +225,7 @@ public abstract class AggregatingAgent extends GraphAgent {
 	@Access(AccessType.PUBLIC)
 	public void report(final @Name("profile") PowerProfile profile,
 			final @Sender URI senderUrl) throws JsonProcessingException {
-		LOG.warning(getId() + "Receiving report from: " + senderUrl + " : "
+		LOG.fine(getId() + "Receiving report from: " + senderUrl + " : "
 				+ JOM.getInstance().valueToTree(profile).toString());
 		reportsLock.writeLock().lock();
 		final ReportWrap wrap = new ReportWrap(senderUrl.toString(), profile);
@@ -290,7 +291,7 @@ public abstract class AggregatingAgent extends GraphAgent {
 
 		if (Math.abs(current_diff) < steerlimit
 				&& Math.abs(next_diff) < steerlimit) {
-			LOG.warning(getId() + ": Below steerlimit of " + steerlimit
+			LOG.info(getId() + ": Below steerlimit of " + steerlimit
 					+ " Watts (" + current_diff + " - " + next_diff + "):"
 					+ now);
 			steeringLock.unlock();
@@ -359,11 +360,11 @@ public abstract class AggregatingAgent extends GraphAgent {
 		for (ReportWrap wrap : list) {
 			if (Math.abs(current_diff) < 0.01 * steerlimit
 					&& Math.abs(next_diff) < 0.01 * steerlimit) {
-				LOG.warning(getId() + ": done steering:" + current_diff + " - "
+				LOG.info(getId() + ": done steering:" + current_diff + " - "
 						+ next_diff);
 				break;
 			}
-			LOG.warning(getId() + ": still to go:" + current_diff + " - "
+			LOG.info(getId() + ": still to go:" + current_diff + " - "
 					+ next_diff + " checking " + wrap.getOwner());
 
 			String agentUrl = wrap.getOwner();
@@ -418,9 +419,9 @@ public abstract class AggregatingAgent extends GraphAgent {
 				continue;
 			}
 
-			LOG.warning(getId() + " diffLine:"
+			LOG.fine(getId() + " diffLine:"
 					+ JOM.getInstance().valueToTree(diffLine));
-			LOG.warning(getId() + " demand:"
+			LOG.fine(getId() + " demand:"
 					+ JOM.getInstance().valueToTree(rep.getDemand()));
 
 			RequestProfile subRequest = new RequestProfile();
@@ -430,7 +431,7 @@ public abstract class AggregatingAgent extends GraphAgent {
 			ObjectNode params = JOM.createObjectNode();
 			params.set("request", JOM.getInstance().valueToTree(subRequest));
 			try {
-				LOG.warning(getId() + ": Sending request to Child:" + agentUrl
+				LOG.info(getId() + ": Sending request to Child:" + agentUrl
 						+ " -> " + params);
 
 				reportsLock.writeLock().lock();
@@ -453,7 +454,6 @@ public abstract class AggregatingAgent extends GraphAgent {
 			updateCurrentReport(false);
 			sendReport();
 		}
-		sendLog();
 		steeringLock.unlock();
 	}
 
